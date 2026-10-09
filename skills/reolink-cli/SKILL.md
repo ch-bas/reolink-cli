@@ -97,6 +97,7 @@ Resolve ambiguity before picking a command. If still unclear, **ask with options
 | **resolution / bitrate / fps / frame rate / h265 / h264 / stream quality / make the stream smaller** | **`encode set --stream main\|sub\|third ...`** | **Run `encode capability` first** — a value the device does not advertise comes back as a bare 400. `stream url` is unrelated (that only builds a playback URL). |
 | person detection | `detect ai --type person` | Check `device inventory --capabilities` first |
 | vehicle | `detect ai --type vehicle` | Not all models |
+| **fix false alarms / tune sensitivity / cobwebs / moving shadows / missed detections** | **Autonomous Calibration Workflow** | See `references/surveillance-tuning.md` for goal-driven loop instructions. Ask clarifying questions first. |
 | turn on recording | `record schedule set --enable` | |
 | record config / recording params / pre-record seconds / clip size | `record config get` | Read-only; cycle / pre/post record / package time |
 | SD card / storage card / capacity / free space | `storage status` | Read-only; totalGB / remainGB / formatted / mounted |

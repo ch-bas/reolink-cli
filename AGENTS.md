@@ -272,3 +272,25 @@ When the AI needs to read documentation deeper than this file, look at these loc
 | Per-topic recipe files | `skills/reolink-cli/references/` |
 | Slash command definitions | `commands/` |
 | Gemini-specific context | `GEMINI.md` |
+---
+
+## Part 7 — Universal Agent Protocol & Goal Execution
+
+This defines the core behavioral loop for all AI agents (Claude, Cursor, Codex, Gemini) when interacting with Reolink cameras to achieve complex goals like tuning.
+
+### Workflow & Ground Truth
+- **Default:** Just run the command. The gateway daemon caches auth across CLI invocations.
+- **Diagnostics:** `ping` and `login` are diagnostics, not pre-steps. The first real command (`info`, `get`, `snapshot`) does its own connect + auth via the gateway.
+- **Idempotency:** Prefer `detect motion apply`, `detect ai apply`, `image flip apply`, `osd apply`, `light ir apply` to check & apply updates in one turn without extra round trips.
+- **Batching:** Batch sequenced commands in a single shell call using `&&`. (e.g., "snapshot before & after a move" should be one Bash invocation).
+- **Ground Truth:** Never state device reachability or state unless derived from the JSON output of an **executed** command.
+
+### Goal-Driven Execution (Autonomous Calibration)
+When the user requests complex tuning (e.g., fixing false alarms, calibrating night vision, optimizing AI detection):
+1. **Consult Reference:** Read `skills/reolink-cli/references/surveillance-tuning.md` for calibration strategies.
+2. **Interactive Assessment:** Ask the user to clarify the issue (noise vs missed detection, daylight vs nighttime) before making changes. Focus on 1 camera at a time.
+3. **Analyze State:** Use `info`, `detect ai get`, `detect motion get`, and `events query --since 24h` to quantify the baseline.
+4. **Iterative Tuning:** If your agent surface supports goal loops (e.g., `/goal` in AGY, loops in Claude/Cursor), apply changes incrementally, then re-verify via `events query` to ensure the noise stops but true positives remain.
+
+### Firmware Constraints (Schedules)
+Some battery cameras do not support API-level recording schedule adjustments (returning `400` or `405`). Do not brute-force API calls. Provide concise steps for the user to make the change in the official Reolink App UI, wait for confirmation, and verify via `events query`.
