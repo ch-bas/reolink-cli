@@ -4,6 +4,35 @@ All notable changes to the public `reolink-cli` distribution are documented here
 This is the customer-facing release history; it tracks the LAN-only (external)
 builds published as GitHub Releases.
 
+## [0.20.0] — 2026-10-12
+
+### Added
+
+- Upgrade a paired Home Hub/NVR camera using its registered child name or
+  `--channel N`, including channel 0. The gateway validates the target before
+  reading or sending the firmware package. Check the child's model and hardware
+  in `info` before flashing; see the [administration guide](skills/reolink-cli/references/admin.md).
+- Read and switch supported battery doorbells between battery and wired power
+  with `config get/set power-mode`. A dry run checks prerequisites; a real
+  switch reads back supply status. See the [setup guide](skills/reolink-cli/references/setup.md).
+- An [operator guide](docs/operator-guide.md) and [CLI reference](docs/cli-reference.md)
+  covering installation, the gateway, first camera registration, safe commands,
+  notifications, and troubleshooting.
+
+### Changed
+
+- New installations use the local gateway by default. `ping` remains a direct
+  connectivity diagnostic.
+- The external dashboard is English-only. Release packages exclude proprietary
+  remote connectivity libraries and are checked before packaging.
+- External CLI, gateway, and MCP interfaces reject raw protocol commands.
+  Public help uses the supported commands and hides internal protocol options.
+
+### Fixed
+
+- Device log calendar/list requests use their dedicated gateway actions, and
+  calendar parsing handles the returned device fields correctly.
+
 ## [0.19.1] — 2026-09-22
 
 A download whose consumer stops reading can no longer hold a camera
@@ -95,26 +124,6 @@ single frame rate can reconstruct it.
   stretch of its clock. The pieces are now butted together: a window crossing a
   9.5-minute gap came back as 800 frames over 53.1 s, with a largest
   inter-frame gap of 81 ms.
-
-- **`discover`'s P2P leg was cut short by the LAN probe's timeout, so cameras
-  only it can see appeared and disappeared between scans.** In one report the
-  LAN leg found 13 devices every time while the P2P leg returned 0, 1, 2 or 3 —
-  and four of the UIDs in that log never appeared on the LAN at all. The four
-  legs run concurrently on one timeout sized for LAN probing, but the P2P leg
-  polls a table the library fills asynchronously, so the deadline decided how
-  much of it you got. Measured: 0 devices at 1/2/3/5 seconds, steady at 10.
-
-  The caller's timeout is now a **floor**: the scan then ends after 3 quiet
-  seconds, capped at 20. Before the fix the P2P leg returned nothing on 5 of 5
-  runs at default settings; after it, 5 of 5 found the device in 3.3 s.
-
-- **A UID-only target could fail immediately with `-7` right after a scan had
-  just enumerated it.** Enumeration proves the library heard the camera on the
-  LAN, so the failure was that the LAN entry had not landed in the library's
-  table yet, while `p2p_connect` read that table synchronously and fell through
-  to the cloud path. It now re-scans and retries, but only on a first `-7`, for
-  at most 6 seconds. A UID already in the table connects on the first try and
-  pays nothing.
 
 ## [0.18.3] — 2026-09-07
 
@@ -787,7 +796,7 @@ batch downloads.
   Hub 2: 220 recordings requested, 220 written.
 
 - **A camera registered with a `uid` could not be reached at all** (#85,
-  reported by **@djancak**). Since these builds carry no P2P, a `uid` target
+  reported by **@djancak**). In these LAN-only builds, a `uid` target
   went straight to a wake broadcast — ignoring the LAN address the same entry
   already gave — and a mains-powered camera that never answers a wake failed
   after about nine seconds with `wake timed out after 3 attempts`. A camera
@@ -1009,15 +1018,10 @@ installation without asking.
   `application/vnd.reolink.vod-batch` response, so nothing that already reads
   `/api/vod/download` is affected.
 
-- **A UID target is resolved on the LAN before falling back to P2P.** A camera
-  whose router has no internet access can never register with the relay, so
-  connecting by UID failed outright (`p2p error: -7`, the relay answering "no
-  such UID") even with the camera sitting on the same subnet. The gateway now
-  broadcasts for the UID first, remembers the answer for 60 seconds, and
-  connects over TCP when it finds one; P2P remains the path for a UID that
-  nothing on the LAN claims. The discovery broadcast also binds its source
-  address per interface, so a host with several networks asks on all of them
-  rather than whichever the routing table happened to pick.
+- **A UID target is resolved on the LAN.** The gateway broadcasts for the
+  UID, remembers the answer for 60 seconds, and connects over TCP when it finds
+  one. Discovery binds its source address per interface so a host with several
+  networks asks on all of them.
 
 - **`vod search` reports `scanned`** — how many recordings the camera returned
   before `--type` filtering. `--limit` is applied by the camera on the

@@ -59,6 +59,11 @@ the release and platform instead of bypassing verification.
 
 ### Windows PowerShell
 
+Windows x64 needs the Microsoft Visual C++ runtime. If either executable reports
+`VCRUNTIME140.dll` missing, install the x64 redistributable from
+[Microsoft](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist)
+and retry.
+
 Run this command from PowerShell or Command Prompt:
 
 ```text

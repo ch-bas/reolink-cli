@@ -157,8 +157,8 @@ audio talk returned ok:true but user hears nothing
 │         on the host — if host can't play it, neither can the camera.
 │         Re-encode: `ffmpeg -y -i SRC -f s16le -ar 16000 -ac 1 ~/.cache/reolink-cli/audio/alert.pcm`.
 ├── Did the sample rate match the device's TalkAbility?
-│     └── `raw 10` (NET_GET_TALK_ABILITY_V20) → `audioConfigList` lists
-│         supported `sampleRate`. E1 Outdoor: 16 kHz only.
+│     └── Resample to 16 kHz mono — the rate every model measured so far
+│         accepts (E1 Outdoor: 16 kHz only).
 ├── Did another app hold the talk session open?
 │     └── Close Reolink mobile app / other clients, retry. Device may
 │         refuse a second open until the previous one times out.
@@ -167,7 +167,6 @@ audio talk returned ok:true but user hears nothing
 │         the CLI read zero bytes from --file / --stdin — recheck the path.
 └── Otherwise → suspect encoder drift. File an issue with:
                • `capabilities` JSON
-               • `raw 10` output (TalkAbility)
                • Length + first 32 bytes of the PCM input (hex-dumped)
                • Gateway log with RUST_LOG=debug
 ```

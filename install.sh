@@ -129,7 +129,7 @@ tag=$(curl_gh -fsSL -A reolink-cli-install \
   | sed -n 's/.*"tag_name":[[:space:]]*"\([^"]*\)".*/\1/p' | head -n1)
 [ -n "$tag" ] || die "could not resolve the latest release (is the repo public? set GITHUB_TOKEN if it is private)"
 ver="${tag#v}"
-# Release archives carry the build flavour in the name so internal (Song P2P)
+# Release archives carry the build flavour in the name so internal development
 # and customer (LAN-only) builds can never be mistaken for one another. Only
 # the external flavour is published here.
 asset="reolink-cli-${ver}-external-${os}-${arch}.tar.gz"

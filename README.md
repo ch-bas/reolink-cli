@@ -137,6 +137,8 @@ powershell -NoProfile -Command "iwr https://raw.githubusercontent.com/reolink/re
 Both installers verify the download before installing anything — see
 [Installers](#installers) for exactly what they do.
 
+Windows x64 requires the [Microsoft Visual C++ runtime](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist).
+
 **Upgrading:** `reolink-cli self-update --yes` on macOS/Linux. On Windows,
 re-run the installer (a running `.exe` cannot replace itself).
 
@@ -303,7 +305,7 @@ and delete what you no longer need.
 - **The gateway binds `127.0.0.1` by default** and refuses browser
   cross-origin requests. `--addr 0.0.0.0:9000` exposes camera control to your
   whole LAN — do it deliberately.
-- **LAN-only build.** Remote access via Reolink's P2P relay is not included;
+- **LAN-only build.** Connect using a camera's LAN address;
   `reolink-cli --version` shows `(external · LAN-only)`.
 - **Report vulnerabilities privately** — see [SECURITY.md](SECURITY.md), which
   also documents what the tool does by design.
