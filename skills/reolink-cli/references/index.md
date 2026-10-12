@@ -17,7 +17,7 @@ Load the file matching your task — don't read all of them.
 | [`events.md`](events.md) | Gateway event bus — `events query` snapshot, `events stream` NDJSON, event shape & type vocabulary |
 | [`event-monitor.md`](event-monitor.md) | `events monitor` rule engine — declarative "on X do Y" automation (`events monitor init/check/run`), replaces shell watcher scripts |
 | [`voice-alert.md`](voice-alert.md) | Detection → TTS → camera speaker (`audio talk`). Dynamic voice alerts on person/vehicle events via cmd 201/202 talkback |
-| [`admin.md`](admin.md) | Device user accounts (`users …`), `system reboot`, `system upgrade` (firmware flash), raw debug commands |
+| [`admin.md`](admin.md) | Device user accounts (`users …`), `system reboot`, `system upgrade` (firmware flash) |
 | [`gateway-http.md`](gateway-http.md) | Driving the gateway's `POST /api` from curl / a non-CLI client |
 | [`troubleshooting.md`](troubleshooting.md) | Something failed and you need to diagnose; user phrased a request ambiguously and you need the full intent-map |
 

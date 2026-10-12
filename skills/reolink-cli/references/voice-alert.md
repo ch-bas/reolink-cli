@@ -12,7 +12,7 @@ Product recipe: on person/vehicle detection, play a dynamic voice line from the 
 ## Rules
 
 - **Must** run `reolink-cli capabilities` before first use. If `audioTalk = 0`, this path is unavailable on that model — fall back to static `visitor_loudspeaker` config (device-side auto-reply).
-- **Must** feed **PCM16 LE mono** at a sample rate the device advertises (verify via `reolink-cli raw 10` — cmd `NET_GET_TALK_ABILITY_V20`). E1 Outdoor confirmed: 16 kHz / 16-bit / mono.
+- **Must** feed **PCM16 LE mono** at a sample rate the device advertises (`audio talk` reads the device's TalkAbility itself). E1 Outdoor confirmed: 16 kHz / 16-bit / mono.
 - **Forbidden** sending raw AIFF/WAV/MP3/AAC — the gateway does not demux, only raw PCM16 samples accepted.
 - **Forbidden** stereo input — convert to mono first (`ffmpeg -ac 1`).
 - **Must** cap single-clip length under ~90 s. Longer clips exceed the gateway's frame size budget.

@@ -30,6 +30,8 @@ reolink-cli device add front-door --host 192.168.x.x --user admin
 - CLI: `{ok:true, command, protocol, data}` / `{ok:false, error:{code, message, retryable}}`
 - Gateway `POST /api`: `{status:"success", data}` / `{status:"error", code, message}`
 
+Battery doorbell external power: `config get power-mode` reads supply status; `config set power-mode --value '{"mode":"adapter","dryRun":1}'` checks prerequisites without switching. Omit `dryRun` or set it to 0 to switch (`mode` is `battery`/`adapter`; requires `batteryMode` bit8). An actual switch includes status readback: only `powerSupplyStatus=normal` confirms adapter mode; ACK or `adapterStatus` alone does not. Errors 426/427/428 mean insufficient external power / wired power disconnected / empty battery. See `skills/reolink-cli/references/setup.md`.
+
 ## Credential Safety
 
 Never pass `--password PLAIN` on argv. Use `--alias front-door` (from `aliases.toml`), `REOLINK_PASSWORD` env, `--password-stdin`, or interactive prompt.
@@ -74,7 +76,12 @@ Never pass `--password PLAIN` on argv. Use `--alias front-door` (from `aliases.t
 
 **System:** `system reboot`; `system upgrade <file.pak> [--factory-reset] [-y]` — flash firmware. ⚠️ bricking risk: match the package's model+hw_ver to `info` first; the GATEWAY reads the LOCAL file path; auto windowed/stop-and-wait by capability; confirm via `info` after the device reboots.
 
-**Raw:** `raw CMD`
+For a v20 Hub/NVR child, use its `--camera` alias from `device expand`, or
+`--camera <hub> --channel N` (including 0). Without a flag or alias channel,
+the upgrade targets the Hub/device itself. Check the child's model, hardware,
+and firmware under `info` → `channel.device`. Upgrade children one at a time;
+batch selectors and `config.toml` channel defaults do not select child upgrade
+targets. See `skills/reolink-cli/references/admin.md`.
 
 ## Target Selectors (global options)
 

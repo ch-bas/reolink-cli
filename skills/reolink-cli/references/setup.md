@@ -174,7 +174,7 @@ Run both `ping` and `login` before any other command on an unfamiliar device.
 
 ## Generic Config Paths
 
-`config set` reads the current value, merges the patch, then writes — safe partial updates.
+`config set network` and `config set osd` merge partial patches with the current value. Other paths validate their own fields; `power-mode` performs the requested switch and reads back supply status.
 
 Working paths only (no stubs):
 
@@ -189,6 +189,7 @@ reolink-cli --camera front-door config get osd
 reolink-cli --camera front-door config get osd-format
 reolink-cli --camera front-door config get system-general   # get-only
 reolink-cli --camera front-door config get performance      # get-only: live CPU / encoder / network load
+reolink-cli --camera doorbell config get power-mode        # battery / external supply status
 ```
 
 ```bash
@@ -201,3 +202,21 @@ reolink-cli --camera front-door config set led         --value '{"state":"auto"}
 ```
 
 For brightness/contrast, use `image tune` (see `controls.md`). For volume use `audio volume` / `audio config` (see `controls.md`). For AI/motion detection use `detect ai` / `detect motion` (see `detection.md`). The old stub paths `image` / `audio` / `alarm` / `alarm-policy` / `ai` have been removed — if you see them in older notes, they never worked.
+
+### Battery doorbell external power mode
+
+Run `features` first to ensure the installed CLI supports `power-mode`, and run a gateway built with the same feature. Read `capabilities`: `batteryMode` bit8 (`value & 256`) enables manual battery/adapter switching; bit6 alone is insufficient. Read `config get power-mode` before a switch. Use the same camera/channel throughout; Hub/NVR children need `--channel N` or a registered child alias.
+
+```bash
+# Check external wired power without changing the mode
+reolink-cli --camera doorbell config set power-mode --value '{"mode":"adapter","dryRun":1}'
+# Switch only when the user requests the device mode change
+reolink-cli --camera doorbell config set power-mode --value '{"mode":"adapter"}'
+reolink-cli --camera doorbell config set power-mode --value '{"mode":"battery"}'
+```
+
+`dryRun` is integer `0`/`1`; omitted/0 changes the mode. A dry run only checks prerequisites and returns `accepted`; it does not establish the requested mode. Unknown fields are rejected to catch misspelled check flags.
+
+An actual switch returns `data.value.requestedMode`, `accepted`, and `status` (automatic cmd 253 readback). **Do not claim a mode change from ACK / `accepted` alone.** `status.powerSupplyStatus=normal` confirms adapter mode. `lowChargeOnly` means the external source can only charge; `disconnected`/`tooLow`/`tooHigh`/`unknown`, or an omitted field, do not confirm it. `adapterStatus=adapter` alone is insufficient: a DBB3 connected to Type-C without terminal wiring may report `disconnected`. A status readback failure explicitly says the switch was accepted; do not assume it was rolled back.
+
+Preserve device error codes: **426** insufficient external power, **427** wired power disconnected, **428** empty battery. Address the reported physical condition before retrying. Cmd 805 switches supply modes; `record schedule` and cmd 451/452/626 configure other behavior.

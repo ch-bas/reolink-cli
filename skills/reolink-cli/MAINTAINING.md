@@ -44,7 +44,7 @@ structure looks the way it does, and what to run when you change it.
 - **No `references/command-recipes.md` — it was removed.** If you're
   tempted to add one back for cross-topic examples, first ask whether
   the example actually spans topics. End-to-end examples live in
-  `docs/api-v30.md` (gateway HTTP) or `docs/cli-reference.md` (CLI).
+  `references/gateway-http.md` (gateway HTTP) or `reolink-cli <command> --help` (CLI).
 
 ## What to run when you change something
 
@@ -119,9 +119,3 @@ appear / did this ordered pattern occur".
 - **Removing a gotcha because "agents should figure it out"** — every
   entry in the Gotchas table was added because an agent literally
   didn't figure it out. Leave them.
-
-## Contact
-
-Skill author sessions are stored under
-`.claude/projects/.../memory/` — check `project_v30_authority.md` and
-the reference-repo pointers for context on V20/V30 authority.

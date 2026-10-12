@@ -34,7 +34,7 @@ $rel = Invoke-RestMethod -UseBasicParsing -Headers $headers -Uri "https://api.gi
 $tag = $rel.tag_name
 if (-not $tag) { throw "could not resolve the latest release (public repo? set GITHUB_TOKEN if private)" }
 $ver   = $tag.TrimStart('v')
-# Release archives carry the build flavour in the name so internal (Song P2P)
+# Release archives carry the build flavour in the name so internal development
 # and customer (LAN-only) builds can never be mistaken for one another. Only
 # the external flavour is published here.
 $asset = "reolink-cli-$ver-external-windows-x86_64.zip"
