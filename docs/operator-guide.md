@@ -8,6 +8,7 @@ connected directly or through a local Home Hub or NVR.
 For a command-oriented index, see the [CLI Reference](cli-reference.md). For
 feature details, use the topic references under
 [`skills/reolink-cli/references`](../skills/reolink-cli/references/index.md).
+For MCP client setup and tool usage, see the [MCP Guide](mcp-guide.md).
 The installed binary remains authoritative: run `reolink-cli --help` and the
 relevant command help when a release differs from this guide.
 
@@ -497,7 +498,7 @@ intentional. Headless runs also require `--no-interactive`.
 | Local gateway | `gateway` |
 | Diagnostics and maintenance | `doctor`, `features`, `status`, `benchmark`, `cache`, `self-update`, `setup` |
 | Shell completion | `completions` |
-| Optional agent integration | `plugin refresh`, `mcp-server` |
+| Optional agent integration | [`mcp-server`](mcp-guide.md), `plugin refresh` |
 
 Examples:
 

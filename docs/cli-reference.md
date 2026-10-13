@@ -11,7 +11,8 @@ reolink-cli <command> --help
 reolink-cli features
 ```
 
-For a guided workflow, see the [Operator Guide](operator-guide.md).
+For a guided workflow, see the [Operator Guide](operator-guide.md). For typed
+AI tool integration, see the [MCP Guide](mcp-guide.md).
 
 ## Quick start
 
@@ -272,6 +273,13 @@ fi
 Batch commands return summary and results[]. Event streams are NDJSON, and
 media commands that write binary data to stdout are not JSON.
 
+## MCP Server
+
+`reolink-cli mcp-server` starts the optional Model Context Protocol server. It
+uses JSON-RPC over stdio and routes device operations through the local gateway.
+For client configuration, tool discovery, target selection, and troubleshooting,
+see the [MCP Guide](mcp-guide.md).
+
 ## Password and file handling
 
 - Use a registered alias or --password-stdin; do not use a real password in
@@ -285,6 +293,7 @@ media commands that write binary data to stdout are not JSON.
 ## Related references
 
 - [Operator Guide](operator-guide.md)
+- [MCP Guide](mcp-guide.md)
 - [Skill entry point](../skills/reolink-cli/SKILL.md)
 - [Reference index](../skills/reolink-cli/references/index.md)
 - [Troubleshooting](../skills/reolink-cli/references/troubleshooting.md)

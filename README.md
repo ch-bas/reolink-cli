@@ -16,7 +16,7 @@ Control Reolink cameras over your **local network** — no cloud account, no app
 Script it with `jq`, or let an AI agent drive it in plain language.
 
 ```console
-$ reolink-cli --camera front-door info | jq '{model, firmware, name}'
+$ reolink-cli --camera front-door info | jq '.data | {model, firmware, name}'
 {
   "model": "Reolink Video Doorbell",
   "firmware": "v3.0.0.6696_26062799",
@@ -102,11 +102,11 @@ For command-oriented navigation, see the [CLI Reference](docs/cli-reference.md).
 /plugin install reolink-cli@reolink-cli
 ```
 
-The plugin carries both the skill and the MCP server. The binary for your
-platform is fetched the first time you ask about a camera, and the agent starts
-the local gateway when it needs it. Then just talk: *“show me the front door
-camera”*, *“point the back-yard camera left”*, *“blink the porch spotlight 3
-times”*.
+Install the CLI and gateway first with the command-line installer below, then
+install the plugin. The plugin provides the skill and MCP registration; it does
+not install the CLI binaries or start the gateway. Start the gateway separately,
+then just talk: *“show me the front door camera”*, *“point the back-yard camera
+left”*, *“blink the porch spotlight 3 times”*.
 
 ### Other agents — requires [Node.js](https://nodejs.org)
 
@@ -116,8 +116,9 @@ Codex, Cursor, Gemini, Copilot, OpenCode and 70+ others:
 npx skills@latest add reolink/reolink-cli
 ```
 
-Pick `reolink-cli` and the agents to install it into; the binary is fetched on
-first use, as above.
+Pick `reolink-cli` and the agents to install it into. `npx skills` installs the
+skill files; it does not install the CLI binaries or start the gateway. Install
+those separately with the command-line installer below.
 
 ### Command line only — no Node required
 
@@ -135,7 +136,7 @@ powershell -NoProfile -Command "iwr https://raw.githubusercontent.com/reolink/re
 ```
 
 Both installers verify the download before installing anything — see
-[Installers](#installers) for exactly what they do.
+[Install and verify](#install-and-verify) for exactly what they do.
 
 Windows x64 requires the [Microsoft Visual C++ runtime](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist).
 
@@ -147,7 +148,7 @@ re-run the installer (a running `.exe` cannot replace itself).
 
 Grab the archive for your platform from the
 [latest Release](https://github.com/reolink/reolink-cli/releases/latest),
-[verify it](#verifying-a-download), extract, and run the bundled installer:
+[verify it](#install-and-verify), extract, and run the bundled installer:
 
 ```bash
 tar -xzf reolink-cli-*.tar.gz && cd reolink-cli-*/ && ./install.sh
@@ -195,14 +196,23 @@ Port 9000 already taken (Portainer, MinIO, …)? Use any free port in both place
 
 ```bash
 reolink-cli discover                                      # cameras on your LAN
-reolink-cli device add porch --host 192.168.1.41 --user admin --password-stdin
+reolink-cli device add porch --host 192.0.2.41 --user admin
 reolink-cli --camera porch info
 reolink-cli --camera porch snapshot --file ./porch.jpg
 ```
 
-`--password-stdin` prompts for the password, so it never lands in your shell
-history. `device list` also shows a few disabled example entries the installer
-wrote to illustrate the file format — `device remove <name>` clears them.
+The interactive `device add` command prompts for the password without echoing
+it. For non-interactive scripts, pipe exactly one password line to
+`--password-stdin` and remove the variable afterwards:
+
+```bash
+printf '%s\n' "$DEVICE_PASSWORD" |
+  reolink-cli device add porch --host 192.0.2.41 --user admin --password-stdin
+unset DEVICE_PASSWORD
+```
+
+`device list` also shows a few disabled example entries the installer wrote to
+illustrate the file format — `device remove <name>` clears them.
 
 Many cameras at once — credentials via the environment, never `--password`:
 
@@ -249,6 +259,9 @@ password.
 
 Two ways in, both driving the same runtime as the CLI:
 
+For complete MCP setup, client configuration, target selection, security, and
+troubleshooting, see the [MCP Guide](docs/mcp-guide.md).
+
 - **The skill** — natural language. It teaches the agent the command surface and
   the safety rules, so you say *“point the driveway cam to preset 2, then take a
   snapshot”* or *“let me know if anyone shows up at the door tonight”*. The agent
@@ -280,19 +293,11 @@ Prebuilt binaries on each [Release](https://github.com/reolink/reolink-cli/relea
 | Linux 32-bit ARM | armv7 (Pi 2/3/4 on a 32-bit OS), armv6 (Pi 1 / Zero) — glibc 2.28+ |
 | Windows | x86_64 |
 
-`install.sh` picks the right one for you, including on a Raspberry Pi whose
-64-bit kernel runs a 32-bit userland. Choosing by hand? `getconf LONG_BIT`
-decides arm64 vs armv7, not `uname -m`; and when unsure between glibc and musl,
-take musl — it runs on both, while a glibc build on a musl host fails with a
-confusing `symbol not found`. `file "$(command -v reolink-cli)"` says
-"statically linked" for a musl build.
+The installers select the matching architecture and libc variant. For manual
+downloads, choose both values from the release asset name; see the
+[Operator Guide](docs/operator-guide.md) for host-specific notes.
 
-**Home Assistant OS:** the `homeassistant` container is aarch64 Alpine. Run the
-one-line installer *inside that container* (it selects musl), and make sure the
-gateway is reachable from there — start it in the same container, or point
-`REOLINK_GATEWAY_ADDR` at one on the LAN.
-
-## Responsible use
+## Security and privacy
 
 Use this tool only on cameras you own or are authorised to administer.
 `discover` and `ping` are for locating your own devices, not for sweeping
@@ -300,21 +305,21 @@ networks you were not asked to work on. Snapshots, recordings and event history
 written to disk are personal data — protect them like the camera's own storage,
 and delete what you no longer need.
 
-## Security
-
 - **The gateway binds `127.0.0.1` by default** and refuses browser
   cross-origin requests. `--addr 0.0.0.0:9000` exposes camera control to your
   whole LAN — do it deliberately.
-- **LAN-only build.** Connect using a camera's LAN address;
-  `reolink-cli --version` shows `(external · LAN-only)`.
+- **LAN-only build.** The public external package requires a camera LAN address
+  and does not provide remote relay connectivity. `reolink-cli --version` shows
+  `(external · LAN-only)`.
 - **Report vulnerabilities privately** — see [SECURITY.md](SECURITY.md), which
   also documents what the tool does by design.
 
 ### Safe credential handling
 
 - **Never pass `--password` on the command line** — it shows up in `ps` and
-  your shell history. Use `--password-stdin`, `REOLINK_PASSWORD`, or register
-  the camera once with `device add` and refer to it by name.
+  your shell history. Use the interactive prompt, `--password-stdin`,
+  `REOLINK_PASSWORD`, or register the camera once with `device add` and refer
+  to it by name.
 - **Stored passwords are encrypted at rest** (AES-256-GCM) with a
   `credentials.key` kept next to the registry. Config files are owner-only
   (`0600`) and the CLI refuses to read them otherwise. **Back up the registry and
@@ -326,7 +331,7 @@ and delete what you no longer need.
 - **Redact before sharing output** — it can contain UIDs, serial numbers, LAN
   addresses and stream URLs.
 
-## Installers
+## Install and verify
 
 `install.sh` and `install.ps1` are plain text — read them before running. They:
 
@@ -334,13 +339,16 @@ and delete what you no longer need.
 - **verify it against `checksums/<tag>.sha256` committed to this repository's
   default branch**, never the checksum attached to the release, and abort on any
   mismatch or missing entry
-- install two binaries to `~/.local/bin` (`%USERPROFILE%\.local\bin` on
-  Windows) — no `sudo`, no system directories, no services
+- install both `reolink-cli` and `reolink-gateway` to `~/.local/bin`
+  (`%USERPROFILE%\.local\bin` on Windows) — no `sudo`, no system directories,
+  no services
 - stop a running `reolink-gateway` only if it runs from that same prefix
 - overwrite previous binaries in that prefix; nothing else on disk is modified
 - add the prefix to your user `PATH` if it is missing (Windows)
 
-### Verifying a download
+<a id="verifying-a-download"></a>
+
+### Manual download verification
 
 ```bash
 tag=vX.Y.Z                                    # the release you downloaded

@@ -65,7 +65,7 @@ runner cannot build it.
 
 If you verify downloads by hand, use the committed checksum file, not the
 `SHA256SUMS` attached to the release — see
-[Verifying a download](README.md#verifying-a-download).
+[Manual download verification](README.md#manual-download-verification).
 
 ### If verification fails
 
